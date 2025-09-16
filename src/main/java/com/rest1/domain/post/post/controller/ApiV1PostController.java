@@ -5,6 +5,7 @@ import com.rest1.domain.member.member.service.MemberService;
 import com.rest1.domain.post.post.dto.PostDto;
 import com.rest1.domain.post.post.entity.Post;
 import com.rest1.domain.post.post.service.PostService;
+import com.rest1.global.exception.ServiceException;
 import com.rest1.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -85,15 +86,10 @@ public class ApiV1PostController {
     @Operation(summary = "글 작성")
     public RsData<PostWriteResBody> createItem(
             @RequestBody @Valid PostWriteReqBody reqBody,
-            @RequestParam @NotBlank @Size(min = 2, max = 30) String username,
-            @NotBlank @Size(min = 2, max = 30) String password
+            @NotBlank @Size(min=30,max=40) String apiKey
     ) {
-        Member actor = memberService.findByUsername(username).get();
-        if (!actor.getPassword().equals(password)) throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-
-
+        Member actor = memberService.findByApiKey(apiKey).orElseThrow(()->new ServiceException("401-1","API 키가 올바르지 않습니다."));
         Post post = postService.write(actor, reqBody.title, reqBody.content);
-        long totalCount = postService.count();
 
         System.out.println("createItem 메서드 실행");
 

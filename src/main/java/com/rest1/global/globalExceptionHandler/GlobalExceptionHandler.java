@@ -1,5 +1,6 @@
 package com.rest1.global.globalExceptionHandler;
 
+import com.rest1.global.exception.ServiceException;
 import com.rest1.global.rsData.RsData;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -49,6 +50,16 @@ public class GlobalExceptionHandler {
                 "400-2",
                 "잘못된 형식의 요청 데이터입니다."
         );
+    }
+
+    @ExceptionHandler(ServiceException.class)
+    @ResponseBody
+    public RsData<Void> handleException(ServiceException e) {
+        return new RsData<Void>(
+                e.getResultCode(),
+                e.getMsg()
+        );
+
     }
 
 

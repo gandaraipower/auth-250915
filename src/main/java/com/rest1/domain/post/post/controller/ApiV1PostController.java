@@ -91,8 +91,6 @@ public class ApiV1PostController {
         Member actor = memberService.findByApiKey(apiKey).orElseThrow(()->new ServiceException("401-1","API 키가 올바르지 않습니다."));
         Post post = postService.write(actor, reqBody.title, reqBody.content);
 
-        System.out.println("createItem 메서드 실행");
-
         return new RsData<>(
                 "201-1",
                 "%d번 게시물이 생성되었습니다.".formatted(post.getId()),

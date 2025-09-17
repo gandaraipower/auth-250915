@@ -1,5 +1,6 @@
 package com.rest1.domain.post.post.controller;
 
+import com.rest1.domain.member.member.entity.Member;
 import com.rest1.domain.member.member.repository.MemberRepository;
 import com.rest1.domain.post.post.entity.Post;
 import com.rest1.domain.post.post.repository.PostRepository;
@@ -106,18 +107,17 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 생성")
+    @DisplayName("글 작성")
     void t3() throws Exception {
         String title = "제목입니다";
         String content = "내용입니다";
-        long authorId=3;
-        String authorName="유저1";
-        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
+
+        Member author = memberRepository.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
-                                .header("Authorization", "Bearer %s".formatted(apiKey))
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -127,7 +127,6 @@ public class ApiV1PostControllerTest {
                                         """.formatted(title, content))
                 )
                 .andDo(print());
-
 
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
@@ -140,23 +139,119 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.postDto.modifyDate").exists())
                 .andExpect(jsonPath("$.data.postDto.title").value(title))
                 .andExpect(jsonPath("$.data.postDto.content").value(content))
-                .andExpect(jsonPath("$.data.postDto.authorId").value(authorId))
-                .andExpect(jsonPath("$.data.postDto.authorName").value(authorName));
+                .andExpect(jsonPath("$.data.postDto.authorId").value(author.getId()))
+                .andExpect(jsonPath("$.data.postDto.authorName").value(author.getName()));
+
     }
 
+    @Test
+    @DisplayName("글 작성, 제목이 입력되지 않은 경우")
+    void t4() throws Exception {
+        String title = "";
+        String content = "내용입니다";
+        Member author = memberRepository.findByUsername("user1").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "%s",
+                                            "content": "%s"
+                                        }
+                                        """.formatted(title, content))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("createItem"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("""
+                        title-NotBlank-must not be blank
+                        title-Size-size must be between 2 and 10
+                        """.stripIndent().trim()));
+
+
+    }
+
+    @Test
+    @DisplayName("글 작성, 내용이 입력되지 않은 경우")
+    void t5() throws Exception {
+        String title = "제목입니다.";
+        String content = "";
+        Member author = memberRepository.findByUsername("user1").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "%s",
+                                            "content": "%s"
+                                        }
+                                        """.formatted(title, content))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("createItem"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("""
+                        content-NotBlank-must not be blank
+                        content-Size-size must be between 2 and 100
+                        """.stripIndent().trim()));
+    }
+
+    @Test
+    @DisplayName("글 작성, JSON 양식이 잘못된 경우")
+    void t6() throws Exception {
+        String title = "제목입니다.";
+        String content = "내용입니다";
+        Member author = memberRepository.findByUsername("user1").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "%s"
+                                            "content": "%s"
+                                        
+                                        """.formatted(title, content))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("createItem"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-2"))
+                .andExpect(jsonPath("$.msg").value("잘못된 형식의 요청 데이터입니다."));
+    }
 
     @Test
     @DisplayName("글 수정")
-    void t4() throws Exception {
+    void t7() throws Exception {
         long targetId = 1;
         String title = "제목 수정";
         String content = "내용 수정";
-        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
+
+        Member author = memberRepository.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/%d".formatted(targetId))
-                                .header("Authorization","Bearer %s".formatted(apiKey))
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -184,14 +279,15 @@ public class ApiV1PostControllerTest {
 
     @Test
     @DisplayName("글 삭제")
-    void t5() throws Exception {
+    void t8() throws Exception {
         long targetId = 1;
-        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
+
+        Member author = memberRepository.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/%d".formatted(targetId))
-                                .header("Authorization","Bearer %s".formatted(apiKey))
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
                 )
                 .andDo(print());
 
@@ -210,7 +306,7 @@ public class ApiV1PostControllerTest {
 
     @Test
     @DisplayName("글 단건 조회, 존재하지 않는 글")
-    void t6() throws Exception {
+    void t9() throws Exception {
         long targetId = Integer.MAX_VALUE;
 
         ResultActions resultActions = mvc
@@ -227,16 +323,17 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 작성, 제목이 입력되지 않은 경우")
-    void t7() throws Exception {
-        String title = "";
+    @DisplayName("글 작성, 인증 헤더 정보가 없을 때")
+    void t10() throws Exception {
+        String title = "제목입니다";
         String content = "내용입니다";
-        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
+
+        Member author = memberRepository.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
-                                .header("Authorization","Bearer %s".formatted(apiKey))
+                                .header("Authorization", "")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -250,27 +347,24 @@ public class ApiV1PostControllerTest {
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
                 .andExpect(handler().methodName("createItem"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.resultCode").value("400-1"))
-                .andExpect(jsonPath("$.msg").value("""
-                        title-NotBlank-must not be blank
-                        title-Size-size must be between 2 and 10
-                        """.stripIndent().trim()));
-
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("헤더에 인증 정보가 없습니다."));
 
     }
 
     @Test
-    @DisplayName("글 작성, 내용이 입력되지 않은 경우")
-    void t8() throws Exception {
-        String title = "제목입니다.";
-        String content = "";
-        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
+    @DisplayName("글 작성, 올바르지 않은 헤더 형식")
+    void t11() throws Exception {
+        String title = "제목입니다";
+        String content = "내용입니다";
+
+        Member author = memberRepository.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
-                                .header("Authorization","Bearer %s".formatted(apiKey))
+                                .header("Authorization", "wrong %s".formatted(author.getApiKey()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -284,31 +378,30 @@ public class ApiV1PostControllerTest {
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
                 .andExpect(handler().methodName("createItem"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.resultCode").value("400-1"))
-                .andExpect(jsonPath("$.msg").value("""
-                        content-NotBlank-must not be blank
-                        content-Size-size must be between 2 and 100
-                        """.stripIndent().trim()));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-2"))
+                .andExpect(jsonPath("$.msg").value("헤더의 인증 정보 형식이 올바르지 않습니다."));
+
     }
 
     @Test
-    @DisplayName("글 작성, JSON 양식이 잘못된 경우")
-    void t9() throws Exception {
-        String title = "제목입니다.";
+    @DisplayName("글 작성, 잘못된/없는 API 키")
+    void t12() throws Exception {
+        String title = "제목입니다";
         String content = "내용입니다";
-        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
+
+        Member author = memberRepository.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
-                                .header("Authorization","Bearer %s".formatted(apiKey))
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey() + "2"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                            "title": "%s"
+                                            "title": "%s",
                                             "content": "%s"
-                                        
+                                        }
                                         """.formatted(title, content))
                 )
                 .andDo(print());
@@ -316,10 +409,9 @@ public class ApiV1PostControllerTest {
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
                 .andExpect(handler().methodName("createItem"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.resultCode").value("400-2"))
-                .andExpect(jsonPath("$.msg").value("잘못된 형식의 요청 데이터입니다."));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-3"))
+                .andExpect(jsonPath("$.msg").value("API 키가 올바르지 않습니다."));
+
     }
-
-
 }

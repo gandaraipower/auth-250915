@@ -1,5 +1,6 @@
 package com.rest1.domain.post.post.controller;
 
+import com.rest1.domain.member.member.repository.MemberRepository;
 import com.rest1.domain.post.post.entity.Post;
 import com.rest1.domain.post.post.repository.PostRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -143,10 +144,12 @@ public class ApiV1PostControllerTest {
         long targetId = 1;
         String title = "제목 수정";
         String content = "내용 수정";
+        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/%d".formatted(targetId))
+                                .header("Authorization","Bearer %s".formatted(apiKey))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -176,10 +179,12 @@ public class ApiV1PostControllerTest {
     @DisplayName("글 삭제")
     void t5() throws Exception {
         long targetId = 1;
+        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/%d".formatted(targetId))
+                                .header("Authorization","Bearer %s".formatted(apiKey))
                 )
                 .andDo(print());
 
@@ -302,4 +307,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("400-2"))
                 .andExpect(jsonPath("$.msg").value("잘못된 형식의 요청 데이터입니다."));
     }
+
+    @Autowired
+    private MemberRepository memberRepository;
 }

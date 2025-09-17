@@ -33,6 +33,9 @@ public class ApiV1PostControllerTest {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private MemberRepository memberRepository;
+
     @Test
     @DisplayName("글 다건 조회")
     void t1() throws Exception {
@@ -109,9 +112,12 @@ public class ApiV1PostControllerTest {
         String content = "내용입니다";
         long authorId=3;
         String authorName="유저1";
+        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .header("Authorization", "Bearer %s".formatted(apiKey))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -121,6 +127,7 @@ public class ApiV1PostControllerTest {
                                         """.formatted(title, content))
                 )
                 .andDo(print());
+
 
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
@@ -224,10 +231,12 @@ public class ApiV1PostControllerTest {
     void t7() throws Exception {
         String title = "";
         String content = "내용입니다";
+        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .header("Authorization","Bearer %s".formatted(apiKey))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -256,10 +265,12 @@ public class ApiV1PostControllerTest {
     void t8() throws Exception {
         String title = "제목입니다.";
         String content = "";
+        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .header("Authorization","Bearer %s".formatted(apiKey))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -286,10 +297,12 @@ public class ApiV1PostControllerTest {
     void t9() throws Exception {
         String title = "제목입니다.";
         String content = "내용입니다";
+        String apiKey=memberRepository.findByUsername("user1").get().getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts")
+                                .header("Authorization","Bearer %s".formatted(apiKey))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -308,6 +321,5 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.msg").value("잘못된 형식의 요청 데이터입니다."));
     }
 
-    @Autowired
-    private MemberRepository memberRepository;
+
 }

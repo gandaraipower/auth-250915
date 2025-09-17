@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseBody
-    public RsData<Void> handleException(NoSuchElementException e){
+    public RsData<Void> handleException(NoSuchElementException e) {
         return new RsData<Void>(
                 "404-1",
                 "존재하지 않는 데이터입니다."

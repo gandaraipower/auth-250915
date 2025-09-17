@@ -20,7 +20,7 @@ spring:
       ddl-auto: update
     show-sql: true
   mvc:
-    hiddenmethod:
+    hidden method:
       filter:
         enabled: true
 

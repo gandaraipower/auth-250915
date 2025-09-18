@@ -24,9 +24,11 @@ public class ApiV1MemberController {
             @NotBlank
             @Size(min = 2, max = 30)
             String username,
+
             @NotBlank
             @Size(min = 2, max = 30)
             String password,
+
             @NotBlank
             @Size(min = 2, max = 30)
             String nickname
@@ -53,14 +55,16 @@ public class ApiV1MemberController {
         );
     }
 
+
     record LoginReqBody(
             @NotBlank
             @Size(min = 2, max = 30)
             String username,
+
             @NotBlank
             @Size(min = 2, max = 30)
             String password
-            ) {
+    ) {
     }
 
     record LoginResBody(
@@ -73,15 +77,20 @@ public class ApiV1MemberController {
     public RsData<MemberDto> login(
             @RequestBody @Valid LoginReqBody reqBody
     ) {
-        Member member = memberService.findByUsername(reqBody.username)
-                .orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 아이디입니다."));
 
-        if (!member.getPassword().equals(reqBody.password)) throw new ServiceException("401-2", "비밀번호가 일치하지 않습니다.");
+        Member member = memberService.findByUsername(reqBody.username).orElseThrow(
+                () -> new ServiceException("401-1", "존재하지 않는 아이디입니다.")
+        );
+
+        if (!member.getPassword().equals(reqBody.password)) {
+            throw new ServiceException("401-2", "비밀번호가 일치하지 않습니다.");
+        }
+
+        rq.addCookie("apiKey", member.getApiKey());
 
         return new RsData(
                 "200-1",
                 "%s님 환영합니다.".formatted(reqBody.username),
-
                 new LoginResBody(
                         new MemberDto(member),
                         member.getApiKey()
@@ -89,20 +98,20 @@ public class ApiV1MemberController {
         );
     }
 
+
     record MeResBody(
             MemberDto memberDto
     ) {
     }
 
     @GetMapping("/me")
-    public RsData<MemberDto> me(
-    ) {
-        Member actor=rq.getActor();
+    public RsData<MemberDto> me() {
 
+        Member actor = rq.getActor();
 
         return new RsData(
                 "200-1",
-                "%s님 환영합니다.".formatted(actor.getUsername()),
+                "OK",
                 new MeResBody(
                         new MemberDto(actor)
                 )

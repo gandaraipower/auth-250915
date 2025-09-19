@@ -33,7 +33,8 @@ public class Member extends BaseEntity {
     }
 
     public void updateApiKey(String system){
-        this.apiKey= UUID.randomUUID().toString();
+        this.apiKey=system;
     }
+
 
 }

@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +27,11 @@ public class AuthTokenServiceTest {
     @Autowired
     private AuthTokenService authTokenService;
 
-    private long expireSeconds = 1000L * 60 * 60 * 24 * 365;
-    private String secretPattern= "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890";
+    @Value("${custom.jwt.secretPattern}")
+    private String secretPattern;
+    @Value("${custom.jwt.expireSeconds}")
+    private long expireSeconds;
+
     @Autowired
     private MemberService memberService;
     @Autowired
@@ -76,17 +80,24 @@ public class AuthTokenServiceTest {
     @Test
     @DisplayName("Ut.jwt.toString 를 통해서 JWT 생성, {name=\"Paul\", age=23}")
     void t3() {
+
+        Map<String, Object> payload =  Map.of("name", "Paul", "age", 23);
+
         String jwt = Ut.jwt.toString(
                 secretPattern,
                 expireSeconds,
-                Map.of("name", "Paul", "age", 23)
+                payload
         );
 
         assertThat(jwt).isNotBlank();
 
-        Boolean validResult=Ut.jwt.isValid(jwt, secretPattern);
-
+        boolean validResult = Ut.jwt.isValid(jwt, secretPattern);
         assertThat(validResult).isTrue();
+
+        Map<String, Object> parsedPayload = Ut.jwt.payloadOrNull(jwt, secretPattern);
+
+        assertThat(parsedPayload)
+                .containsAllEntriesOf(payload);
 
         System.out.println("jwt = " + jwt);
     }
@@ -99,7 +110,17 @@ public class AuthTokenServiceTest {
         String accessToken = authTokenService.genAccessToken(member1);
         assertThat(accessToken).isNotBlank();
 
+        Map<String, Object> payload = authTokenService.payloadOrNull(accessToken);
+
+        assertThat(payload).containsAllEntriesOf(
+                Map.of(
+                        "id", member1.getId(),
+                        "username", member1.getUsername()
+                )
+        );
+
         System.out.println("accessToken = " + accessToken);
+
 
     }
 }

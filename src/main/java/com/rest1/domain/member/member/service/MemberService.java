@@ -4,6 +4,7 @@ import com.rest1.domain.member.member.entity.Member;
 import com.rest1.domain.member.member.repository.MemberRepository;
 import com.rest1.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class MemberService {
                     throw new ServiceException("409-1","이미 사용중인 아이디입니다.");
                 });
 
-    Member member = new Member(username,password,nickname);
+    Member member = new Member(username,passwordEncoder.encode(password),nickname);
     return memberRepository.save(member);
     }
 
@@ -54,5 +55,14 @@ public class MemberService {
 
     public List<Member> findAll() {
         return memberRepository.findAll();
+    }
+
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public void checkPassword( String inputPassword, String rawPassword) {
+
+        if(!passwordEncoder.matches(inputPassword, rawPassword)){
+                throw new ServiceException("401-2","비밀번호가 일치하지 않습니다.");
+        }
     }
 }

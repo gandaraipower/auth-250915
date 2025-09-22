@@ -1,3 +1,4 @@
+
 package com.rest1.domain.member.member.service;
 
 import com.rest1.domain.member.member.entity.Member;
@@ -27,15 +28,14 @@ public class AuthTokenServiceTest {
     @Autowired
     private AuthTokenService authTokenService;
 
-    @Value("${custom.jwt.secretPattern}")
-    private String secretPattern;
-    @Value("${custom.jwt.expireSeconds}")
-    private long expireSeconds;
-
-    @Autowired
-    private MemberService memberService;
     @Autowired
     private MemberRepository memberRepository;
+
+    @Value("${custom.jwt.secretPattern}")
+    private String secretPattern;
+
+    @Value("${custom.jwt.expireSeconds}")
+    private long expireSeconds;
 
     @Test
     @DisplayName("authTokenService 서비스가 존재한다.")
@@ -115,7 +115,8 @@ public class AuthTokenServiceTest {
         assertThat(payload).containsAllEntriesOf(
                 Map.of(
                         "id", member1.getId(),
-                        "username", member1.getUsername()
+                        "username", member1.getUsername(),
+                        "nickname", member1.getNickname()
                 )
         );
 

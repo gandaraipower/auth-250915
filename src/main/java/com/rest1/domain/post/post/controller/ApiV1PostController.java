@@ -98,6 +98,8 @@ public class ApiV1PostController {
     ) {
 
         Member actor = rq.getActor();
+
+
         Post post = postService.write(actor, reqBody.title, reqBody.content);
 
         return new RsData<>(

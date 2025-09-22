@@ -20,6 +20,7 @@ public class ApiV1MemberController {
 
     private final MemberService memberService;
     private final Rq rq;
+    private final AuthTokenService authTokenService;
 
     record JoinReqBody(
             @NotBlank
@@ -90,8 +91,8 @@ public class ApiV1MemberController {
 
         String accessToken = memberService.genAccessToken(member);
 
-        rq.addCookie("apiKey", member.getApiKey());
-        rq.addCookie("accessToken", accessToken);
+        rq.setCookie("apiKey", member.getApiKey());
+        rq.setCookie("accessToken", accessToken);
 
         return new RsData(
                 "200-1",
@@ -104,17 +105,17 @@ public class ApiV1MemberController {
         );
     }
 
-
     @DeleteMapping("/logout")
     public RsData<Void> logout() {
 
         rq.deleteCookie("apiKey");
 
-        return new RsData(
+        return new RsData<>(
                 "200-1",
                 "로그아웃 되었습니다."
         );
     }
+
 
     record MeResBody(
             MemberDto memberDto
@@ -124,17 +125,15 @@ public class ApiV1MemberController {
     @GetMapping("/me")
     public RsData<MemberDto> me() {
 
-        Member actor = rq.getActor();
+        Member author = memberService.findById((rq.getActor().getId())).get();
 
         return new RsData(
                 "200-1",
                 "OK",
                 new MeResBody(
-                        new MemberDto(actor)
+                        new MemberDto(author)
                 )
         );
     }
 
-
-    private final AuthTokenService authTokenService;
 }

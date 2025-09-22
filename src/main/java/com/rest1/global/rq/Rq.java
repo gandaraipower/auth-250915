@@ -56,8 +56,8 @@ public class Rq {
                 String username = (String) payload.get("username");
                 String nickname = (String) payload.get("nickname");
 
-                member=new Member(id,username,nickname);
-                isAccessTokenValid=true;
+                member = new Member(id, username, nickname);
+                isAccessTokenValid = true;
             }
         }
 
@@ -67,10 +67,10 @@ public class Rq {
                     .orElseThrow(() -> new ServiceException("401-3", "API 키가 유효하지 않습니다."));
         }
 
-        if(isAccessTokenExists && !isAccessTokenValid) {
-            String newAccessToken=memberService.genAccessToken(member);
-            setCookie("accessToken",newAccessToken);
-            setHeader("X-New-Access-Token", newAccessToken);
+        if (isAccessTokenExists && !isAccessTokenValid) {
+            String newAccessToken = memberService.genAccessToken(member);
+            setCookie("accessToken", newAccessToken);
+            setHeader("accessToken", newAccessToken);
         }
 
         return member;

@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.Map;
 
 public class Ut {
+
+
     public static class jwt {
         public static String toString(String secret, long expireSeconds, Map<String, Object> body) {
             ClaimsBuilder claimsBuilder = Jwts.claims();
@@ -59,7 +61,7 @@ public class Ut {
 
             SecretKey secretKey = Keys.hmacShaKeyFor(secretPattern.getBytes(StandardCharsets.UTF_8));
 
-            if(isValid(jwt, secretPattern)) {
+            if (isValid(jwt, secretPattern)) {
                 return (Map<String, Object>) Jwts
                         .parser()
                         .verifyWith(secretKey)
